@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">jatimpark</string>
+    <string name="access_token">pk.eyJ1Ijoic3RyYWlqaW4xMCIsImEiOiJjazR1bzFwMzcwMTFrM21sbjdnaDgzbTZvIn0.27BFMsM_k6zW4J1CGEBLNw</string>
+    <string name="user_location_permission_explanation">This app needs location permissions in order to show its functionality.</string>
+    <string name="user_location_permission_not_granted">You didn\'t grant location permissions.</string>
+    <string name="toast_instruction">Tap on cards below</string>
+    <string name="rv_directions_route_card_name">Wahana #%1$d</string>
+    <string name="rv_directions_route_available_table_info">%1$d tables available</string>
+    <string name="change_style_maps">Change style maps</string>
+
+    <string name="emailpassword_status_fmt">Email User: %1$s (verified: %2$b)</string>
+
+    <string name="firebase_status_fmt">Firebase UID: %s</string>
+
+
+</resources>
