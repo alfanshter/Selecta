@@ -10,7 +10,7 @@ class LokasiAdapter(private val place:IntArray, private val name: Array<String>,
     :RecyclerView.Adapter<LokasiHolder>()
 {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LokasiHolder {
-        val v = LayoutInflater.from(parent?.context).inflate(R.layout.card_lokasi,parent,false)
+        val v = LayoutInflater.from(parent.context).inflate(R.layout.card_lokasi,parent,false)
         return LokasiHolder(v,mContext)
     }
 

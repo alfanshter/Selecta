@@ -130,7 +130,7 @@
                     android:layout_gravity="center_horizontal|center_vertical"
                     android:layout_margin="10dp"
                     android:orientation="vertical"
-                    android:id="@+id/lampu"
+                    android:id="@+id/rombongan"
                     >
 
                     <ImageView
@@ -188,6 +188,7 @@
                         android:layout_height="150dp"
                         android:layout_gravity="center_horizontal"
                         android:background="@drawable/emergency"
+                        android:id="@+id/panggilandarurat"
                         />
 
                     <RelativeLayout

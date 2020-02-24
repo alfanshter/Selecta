@@ -1,3 +1,3 @@
 package com.alfanshter.jatimpark.Model
 
-data class DataClass (val name:String?)
+data class UsersHome (val name:String?)

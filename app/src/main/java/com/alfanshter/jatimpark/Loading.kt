@@ -1,13 +1,18 @@
 package com.alfanshter.jatimpark
 
+import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
 import android.widget.Toast
+import com.alfanshter.jatimpark.Rombongan.JoinCode
 import com.alfanshter.jatimpark.auth.Login
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.activity_loading.*
 import org.jetbrains.anko.startActivity
+
 
 class Loading : AppCompatActivity() {
     private var Value = 0
@@ -17,11 +22,12 @@ class Loading : AppCompatActivity() {
 
         //Handler
         //Handler
-        val handler: Handler = object : Handler() {
+        val handler: Handler = @SuppressLint("HandlerLeak")
+        object : Handler() {
             override fun handleMessage(msg: Message) {
                 super.handleMessage(msg)
-                persentase.setText(Value.toString() + "%")
-                if (Value == loading.getMax()) {
+                persentase.text = "$Value%"
+                if (Value == loading.max) {
                     Toast.makeText(applicationContext, "Loading Selesai", Toast.LENGTH_SHORT)
                         .show()
                     startActivity<Login>()

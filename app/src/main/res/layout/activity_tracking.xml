@@ -10,15 +10,34 @@
     <com.mapbox.mapboxsdk.maps.MapView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        mapbox:mapbox_cameraTargetLat = "-7.817925"
-        mapbox:mapbox_cameraTargetLng = "112.525800"
         mapbox:mapbox_cameraZoom = "16"
         mapbox:mapbox_cameraBearing="34.33"
         mapbox:mapbox_cameraTilt="50.25"
-        mapbox:mapbox_cameraZoomMax="18"
         mapbox:mapbox_cameraZoomMin="6"
         android:id="@+id/mapview"
         mapbox:mapbox_uiRotateGestures="false"
+        />
+<TextView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:id="@+id/lokasi"
+    android:layout_centerHorizontal="true"
+    />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="navigation"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="100dp"
+        android:id="@+id/navigasi"
+        />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="navigation"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="200dp"
+        android:id="@+id/navigasi2"
         />
 
     <androidx.recyclerview.widget.RecyclerView
