@@ -1,144 +1,191 @@
 package com.alfanshter.jatimpark
 
-import android.app.ProgressDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.ActionBarDrawerToggle
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
-import androidx.constraintlayout.widget.Constraints
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.drawerlayout.widget.DrawerLayout
+import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
-import androidx.navigation.Navigation
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
+import com.alfanshter.jatimpark.Model.Util.FcmPush
 import com.alfanshter.jatimpark.Session.SessionManager
 import com.alfanshter.jatimpark.auth.Login
+import com.alfanshter.jatimpark.ui.Calling.Panggilan
 import com.alfanshter.jatimpark.ui.Tracking.TrackingFragment
 import com.alfanshter.jatimpark.ui.dashboard.DashboardFragment
 import com.alfanshter.jatimpark.ui.generate.GenerateCode
-import com.alfanshter.jatimpark.ui.generateKode.BlankFragment
-import com.alfanshter.jatimpark.ui.generateKode.Generate
 import com.alfanshter.jatimpark.ui.shareRombongan.ShareRombongan
-import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
-import com.karan.churi.PermissionManager.PermissionManager
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.iid.FirebaseInstanceId
+import com.squareup.picasso.Picasso
+import kotlinx.android.synthetic.main.activity_tracking__rombongan.*
 import kotlinx.android.synthetic.main.drawer_header.*
 import org.jetbrains.anko.startActivity
 import org.jetbrains.anko.toast
 
 class Tracking_Rombongan : AppCompatActivity() {
     val PERMISSIONS_REQUEST = 1
-    private lateinit var drawerConfiguration: AppBarConfiguration
-    private lateinit var sessionManager: SessionManager
+
 
     private lateinit var auth: FirebaseAuth
     lateinit var user: FirebaseUser
     lateinit var referencebaru: DatabaseReference
-    lateinit var progressdialog: ProgressDialog
     lateinit var userID: String
-    lateinit var nilaikode: String
+    private lateinit var mainPresenter: MainPresenter
+    private lateinit var sessionManager: SessionManager
     var namaprofil = ""
     var emailprofil = ""
-
-    private val onNavigationItemSelectedListener = NavigationView.OnNavigationItemSelectedListener { item->
-        sessionManager = SessionManager(this)
-        when(item.itemId)
-        {
-            R.id.navigation_generate ->
-            {
-                supportFragmentManager.beginTransaction().replace(R.id.nav_host_fragment,Generate()).commit()
+    var gambarprofil = ""
+        var nilai = false
+    private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
+        when (item.itemId) {
+            R.id.navigation_dashboard -> {
+                mainPresenter.changeFragment(supportFragmentManager,
+                    DashboardFragment(),R.id.nav_host_fragment)
                 return@OnNavigationItemSelectedListener true
             }
-
-            R.id.nav_logout ->{
-/*
-                supportFragmentManager.beginTransaction().replace(R.id.nav_host_fragment,ShareRombongan()).commit()
+            R.id.navigation_home -> {
+                mainPresenter.changeFragment(supportFragmentManager,
+                    TrackingFragment(),R.id.nav_host_fragment)
                 return@OnNavigationItemSelectedListener true
-*/
-                FirebaseAuth.getInstance().signOut()
-                toast("halo")
-                sessionManager.setLogin(false)
-                sessionManager.setNama(false)
-                startActivity<Login>()
+            }
+            R.id.navigation_sharingmaps -> {
+                mainPresenter.changeFragment(supportFragmentManager,
+                    ShareRombongan(),R.id.nav_host_fragment)
+                return@OnNavigationItemSelectedListener true
+            }
+            R.id.navigation_notifications ->{
+                mainPresenter.changeFragment(supportFragmentManager,
+                    Panggilan(),R.id.nav_host_fragment)
+                return@OnNavigationItemSelectedListener true
             }
         }
-            false
+        false
     }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tracking__rombongan)
-        val toolbar: Toolbar = findViewById(R.id.toolbar)
+        registerPushToken()
+        if (nilai ==true)
+        {
+            FcmPush.instance.sendMessage("Cr8miBro1QP018K80U6qXUHkUNC2","hi","emboh kah ")
+
+        }
+
+        sessionManager = SessionManager(this)
         setSupportActionBar(toolbar)
-
+        val actionBar = supportActionBar
+        actionBar?.title = "Hello Toolbar"
         auth = FirebaseAuth.getInstance()
-        user = auth.currentUser!!
-        userID = user.uid
-
+        //upload info
         referencebaru = FirebaseDatabase.getInstance().reference.child("Selecta").child("Users")
-
         referencebaru.addValueEventListener(object : ValueEventListener{
             override fun onCancelled(p0: DatabaseError) {
+
             }
 
             override fun onDataChange(p0: DataSnapshot) {
-                namaprofil = p0.child(userID).child("nama").value.toString()
-                emailprofil = p0.child(userID).child("email").value.toString()
+            namaprofil = p0.child(auth.uid.toString()+"/nama").value.toString()
+                gambarprofil = p0.child(auth.uid.toString()+"/gambar").value.toString()
+                emailprofil = p0.child(auth.uid.toString()+"/email").value.toString()
                 nama_drawer.text = namaprofil
+                Picasso.get().load(gambarprofil)
+                    .into(gambardrawer)
                 email_drawer.text = emailprofil
+            }
+        })
+        //========
 
-
+        val drawerToggle: ActionBarDrawerToggle = object : ActionBarDrawerToggle(
+            this,
+        container,
+            toolbar,
+            R.string.drawer_open,
+            R.string.drawer_close
+        ){
+            override fun onDrawerClosed(view: View){
+                super.onDrawerClosed(view)
+                //toast("Drawer closed")
             }
 
-        })
-        checkPermission()
+            override fun onDrawerOpened(drawerView: View){
+                super.onDrawerOpened(drawerView)
+                //toast("Drawer opened")
+            }
+        }
 
-        val navView: BottomNavigationView = findViewById(R.id.nav_view)
-        val drawer: NavigationView = findViewById(R.id.drawer)
+        drawerToggle.isDrawerIndicatorEnabled = true
+        container.addDrawerListener(drawerToggle)
+        drawerToggle.syncState()
 
-        val navController = findNavController(R.id.nav_host_fragment)
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        val appBarConfiguration = AppBarConfiguration(
-            setOf(
-                R.id.navigation_sharingmaps,  R.id.navigation_dashboard, R.id.navigation_notifications, R.id.navigation_home
-                )
-        )
+        navigationView.setNavigationItemSelectedListener{
+            when (it.itemId) {
+                R.id.navigation_generate -> {
+                    mainPresenter.changeFragment(supportFragmentManager,
+                        GenerateCode(),R.id.nav_host_fragment)
+                }
+                R.id.nav_logout -> {
+                    FirebaseAuth.getInstance().signOut()
+                    toast("halo")
+                    sessionManager.setLogin(false)
+                    sessionManager.setNama(false)
+                    startActivity<Login>()
+                    finish()
+                }
+            }
+            container.closeDrawer(GravityCompat.START)
+            true
 
-        drawerConfiguration =   AppBarConfiguration(
-            setOf(
-                R.id.navigation_generate, R.id.nav_gallery, R.id.nav_slideshow,
-                R.id.nav_tools, R.id.nav_share
-            )
-        )
-
-
-        drawer.setNavigationItemSelectedListener(onNavigationItemSelectedListener)
-        setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
-
-/*
-        setupActionBarWithNavController(navController, drawerConfiguration)
-        drawer.setupWithNavController(navController)
-*/
+        }
+        mainPresenter = MainPresenter()
+        mainPresenter.changeFragment(supportFragmentManager,
+            DashboardFragment(),R.id.nav_host_fragment)
+        nav_view.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
 
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment)
-        return navController.navigateUp(drawerConfiguration) || super.onSupportNavigateUp()
+
+    fun registerPushToken()
+    {
+        FirebaseInstanceId.getInstance().instanceId.addOnCompleteListener {
+                task ->
+            val token = task.result?.token
+            val uid = FirebaseAuth.getInstance().currentUser?.uid
+            val map = mutableMapOf<String,Any>()
+            map["pushToken"] = token!!
+
+            FirebaseFirestore.getInstance().collection("pushtokens").document(uid!!).set(map)
+        }
+        lateinit var databaseReference: DatabaseReference
+
+        FirebaseInstanceId.getInstance().instanceId.addOnCompleteListener{
+            task ->
+            val token = task.result?.token
+            val uid = FirebaseAuth.getInstance().currentUser?.uid
+            val map = mutableMapOf<String,Any>()
+            map["pushToken"] = token!!
+            databaseReference = FirebaseDatabase.getInstance().reference.child("Selecta").child("pushtokens").child(uid.toString())
+            databaseReference.setValue(map)
+        }
+        nilai = true
     }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        val fragment: Fragment? = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
+        fragment?.onActivityResult(requestCode,resultCode,data)
+    }
+
     fun checkPermission(){
 
         val permission = ContextCompat.checkSelfPermission(this,
@@ -177,4 +224,4 @@ class Tracking_Rombongan : AppCompatActivity() {
     }
 
 
-}
+    }

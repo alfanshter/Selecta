@@ -6,11 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.shareRombongan.ShareRombongan">
-<RelativeLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/layoutJoinKode"
-    >
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -46,30 +42,5 @@
         android:layout_marginTop="50dp"
         android:text="Enter"
         />
-</RelativeLayout>
 
-<RelativeLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/petamapbox"
-    >
-    <com.mapbox.mapboxsdk.maps.MapView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="50dp"
-        android:id="@+id/mapboxfamily"
-        mapbox:mapbox_cameraTargetLat="-7.818834"
-        mapbox:mapbox_cameraTargetLng="112.526830"
-        mapbox:mapbox_cameraZoom="12"
-        />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:text="keluar"
-        android:id="@+id/btn_keluar"
-        />
-
-</RelativeLayout>
 </RelativeLayout>

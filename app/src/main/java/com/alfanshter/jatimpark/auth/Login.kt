@@ -1,8 +1,12 @@
 package com.alfanshter.jatimpark.auth
 
+import android.annotation.SuppressLint
 import android.app.ProgressDialog
+import android.content.Context
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.view.View
+import android.widget.NumberPicker
 import androidx.appcompat.app.AppCompatActivity
 import com.alfanshter.jatimpark.Menu
 import com.alfanshter.jatimpark.R
@@ -18,6 +22,10 @@ import com.karan.churi.PermissionManager.PermissionManager
 import kotlinx.android.synthetic.main.login.*
 import org.jetbrains.anko.startActivity
 import org.jetbrains.anko.toast
+import org.jetbrains.anko.wifiManager
+import java.util.*
+import java.util.logging.Formatter
+import kotlin.collections.ArrayList
 
 
 class Login : AppCompatActivity(), View.OnClickListener {
@@ -27,9 +35,11 @@ class Login : AppCompatActivity(), View.OnClickListener {
     lateinit var userID: String
     lateinit var manager : PermissionManager
 
+    lateinit var ip : String
     private lateinit var sessionManager: SessionManager
 
     private lateinit var auth: FirebaseAuth
+    @SuppressLint("HardwareIds")
     override fun onCreate(savedInstanceState: Bundle?) {
 
         manager = object : PermissionManager() {}
@@ -37,6 +47,16 @@ class Login : AppCompatActivity(), View.OnClickListener {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.login)
+        val manager : WifiManager = application.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        ip = android.text.format.Formatter.formatIpAddress(manager.connectionInfo.ipAddress)
+        toast(ip)
+        val info = wifiManager.connectionInfo
+        val alfan = info.ssid
+toast(alfan)
+        if (info.equals("AndroidWifi"))
+        {
+            toast("uwaw")
+        }
 
         sessionManager = SessionManager(this)
 
@@ -51,6 +71,7 @@ class Login : AppCompatActivity(), View.OnClickListener {
 
         if (sessionManager.getLogin()!!) {
             startActivity<NamaProfil>()
+            finish()
         }
 
         signup.setOnClickListener {
@@ -60,35 +81,54 @@ class Login : AppCompatActivity(), View.OnClickListener {
 
 
     fun login() {
-        var users = users.text.toString()
+        val progressDialog = ProgressDialog(this)
+        progressDialog.setTitle("uploading....")
+        progressDialog.show()
+
+
+        val bundle :Bundle ?=intent.extras
+
+
+
+        var userss = users.text.toString()
         var password = pass.text.toString()
-        auth.signInWithEmailAndPassword(users, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    progressdialog.onStart()
-                    user = auth.currentUser!!
-                    userID = user.uid
-                    reference.child(userID).child("email").setValue(users)
-                    reference.child(userID).child("password").setValue(password)
-                    reference.child(userID).child("iduser").setValue(userID)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                progressdialog.dismiss()
-                                toast("user telah terregistrasi")
-                                //menambah sesion
-                                sessionManager.setLogin(true)
-                                sessionManager.setIduser(users)
-                            } else {
-                                progressdialog.dismiss()
-                                toast("user gagal di registrasi")
-                            }
+if (pass.text.toString().trim().isNotEmpty() && users.toString().trim().isNotEmpty())
+{
+    auth.signInWithEmailAndPassword(userss, password)
+        .addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                progressdialog.onStart()
+                user = auth.currentUser!!
+                userID = user.uid
+                reference.child(userID).child("email").setValue(userss)
+                reference.child(userID).child("password").setValue(password)
+                reference.child(userID).child("iduser").setValue(userID)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            progressdialog.dismiss()
+                            toast("user telah terregistrasi")
+                            //menambah sesion
+                            sessionManager.setLogin(true)
+                            sessionManager.setIduser(userss)
+                        } else {
+                            progressdialog.dismiss()
+                            toast("user gagal di registrasi")
                         }
-                    toast("Login Berhasil ")
-                    startActivity<NamaProfil>()
-                } else {
-                    toast("gagal")
-                }
+                    }
+                progressDialog.dismiss()
+                toast("Login Berhasil ")
+                startActivity<NamaProfil>()
+            } else {
+                toast("gagal")
             }
+        }
+
+}
+        else{
+    toast("masukkan username dan password")
+
+}
+
     }
 
     override fun onClick(v: View?) {

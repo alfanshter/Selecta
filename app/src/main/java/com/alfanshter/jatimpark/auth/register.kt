@@ -33,10 +33,10 @@ class register : AppCompatActivity() {
                 if (it.isSuccessful){
                     val me = auth.currentUser
                     if (me!=null){
-                        FirebaseHelper.pushUserData(email,username,me.uid)
+                        FirebaseHelper.pushUserData(email,username,me.uid,nomor)
                     }
                     toast("Register Berhasil")
-                    startActivity<Login>("email" to email,"password" to password)
+                    startActivity<Login>("email" to email,"password" to password,"nomor" to nomor)
                     finish()
                 }
                 else{

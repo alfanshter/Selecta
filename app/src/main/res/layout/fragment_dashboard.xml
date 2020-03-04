@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_marginTop="40dp"
-    android:background="#f8f8f8"
+    android:background="#F0F0F0"
     >
     <ScrollView
         android:layout_width="match_parent"
@@ -71,7 +71,7 @@
         <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/recyclerView"
+            android:id="@+id/recyclerinfo"
             />
         <LinearLayout
             android:layout_width="match_parent"
@@ -121,7 +121,7 @@
                         android:layout_height="50dp"
                         android:scaleType="centerCrop"
                         android:layout_gravity="center"
-                        android:src="@drawable/ic_home_black_24dp"/>
+                        android:src="@drawable/bicycle"/>
 
 
                     <com.alfanshter.jatimpark.customfont.semibold
@@ -145,7 +145,7 @@
                         android:layout_width="50dp"
                         android:layout_height="50dp"
                         android:layout_gravity="center"
-                        android:src="@drawable/ic_home_black_24dp"/>
+                        android:src="@drawable/flower"/>
 
 
                     <com.alfanshter.jatimpark.customfont.semibold
@@ -170,7 +170,7 @@
                         android:layout_width="50dp"
                         android:layout_height="50dp"
                         android:layout_gravity="center"
-                        android:src="@drawable/ic_home_black_24dp"/>
+                        android:src="@drawable/waterparkdua"/>
 
 
                     <com.alfanshter.jatimpark.customfont.semibold
@@ -205,7 +205,7 @@
                         android:layout_height="50dp"
                         android:scaleType="centerCrop"
                         android:layout_gravity="center"
-                        android:src="@drawable/ic_home_black_24dp"/>
+                        android:src="@drawable/kuda"/>
 
 
                     <com.alfanshter.jatimpark.customfont.semibold
@@ -229,7 +229,7 @@
                         android:layout_width="50dp"
                         android:layout_height="50dp"
                         android:layout_gravity="center"
-                        android:src="@drawable/ic_home_black_24dp"/>
+                        android:src="@drawable/cinema"/>
 
 
                     <com.alfanshter.jatimpark.customfont.semibold
@@ -254,7 +254,7 @@
                         android:layout_width="50dp"
                         android:layout_height="50dp"
                         android:layout_gravity="center"
-                        android:src="@drawable/ic_home_black_24dp"/>
+                        android:src="@drawable/perahu"/>
 
 
                     <com.alfanshter.jatimpark.customfont.semibold

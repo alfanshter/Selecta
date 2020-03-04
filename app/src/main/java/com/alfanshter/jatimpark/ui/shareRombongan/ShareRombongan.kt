@@ -20,10 +20,13 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import com.alfanshter.jatimpark.Model.ModelBaru
 import com.alfanshter.jatimpark.Model.ModelSharing
+import com.alfanshter.jatimpark.Model.Util.FcmPush
 import com.alfanshter.jatimpark.R
 import com.alfanshter.jatimpark.Session.SessionManager
+import com.alfanshter.jatimpark.ui.dashboard.DashboardFragment
 import com.firebase.geofire.GeoFire
 import com.firebase.geofire.GeoQuery
+import com.goodiebag.pinview.Pinview
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
@@ -64,38 +67,16 @@ import kotlin.collections.ArrayList
 import kotlin.jvm.internal.InlineMarker
 
 
-class ShareRombongan : Fragment(), OnMapReadyCallback, MapboxMap.OnMapClickListener,
-    PermissionsListener, AnkoLogger {
+class ShareRombongan : Fragment(),  AnkoLogger {
 
     private lateinit var viewModel: ShareRombonganViewModel
-    private lateinit var mapboxMap: MapboxMap
-    private var markerViewManager: MarkerViewManager? = null
-    private lateinit var sessionManager: SessionManager
-    private lateinit var locationComponent: LocationComponent
-    private var callback = MainActivityLocationCallbackBaru(this)
-    private var permissionsManager: PermissionsManager = PermissionsManager(this)
-    private var locationEngine: LocationEngine? = null
-    private val DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L
-    private val DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5
-    private lateinit var auth: FirebaseAuth
     lateinit var user: FirebaseUser
-    private lateinit var referencesharing: DatabaseReference
-    private lateinit var referencejoin: DatabaseReference
-    lateinit var referensehapus: DatabaseReference
     lateinit var userID: String
     private lateinit var butonkode: Button
-    private lateinit var butonkeluar: Button
-    private lateinit var marker: MarkerView
-    private var setMarker: Boolean = false
-    private var hasDraw: Boolean = false
-    private var statusjoin: Boolean = false
-    private lateinit var customview: View
-    private lateinit var animator: ValueAnimator
-    private lateinit var geoJsonSource: GeoJsonSource
-    var lokasi = LatLng(00.00, 00.00)
-    private var currentPosition = LatLng( -7.81958192107,112.52652012)
+    lateinit var sessionManager: SessionManager
+    private lateinit var referencejoin: DatabaseReference
+    private lateinit var pin : Pinview
     var nama = ""
-    var markerMap: HashMap<Int, MarkerView> = HashMap<Int, MarkerView>()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -105,498 +86,51 @@ class ShareRombongan : Fragment(), OnMapReadyCallback, MapboxMap.OnMapClickListe
         Mapbox.getInstance(context!!.applicationContext, getString(R.string.access_token))
         viewModel = ViewModelProviders.of(this).get(ShareRombonganViewModel::class.java)
         val root = inflater.inflate(R.layout.share_rombongan_fragment, container, false)
-        val mapView = root.findViewById(R.id.mapboxfamily) as MapView
-        mapView.onCreate(savedInstanceState)
-        mapView.getMapAsync(this)
-        hasDraw = false
+        FcmPush.instance.sendMessage("Cr8miBro1QP018K80U6qXUHkUNC2","Howlstagram","ayolah please")
 
-        auth = FirebaseAuth.getInstance()
-        user = auth.currentUser!!
-        userID = user.uid
         sessionManager = SessionManager(context)
-
-
-        if (sessionManager.getIDStatusUser().equals("")) {
-            (root.find<RelativeLayout>(R.id.layoutJoinKode)).visibility = View.VISIBLE
-            (root.find<RelativeLayout>(R.id.petamapbox)).visibility = View.INVISIBLE
-        } else if (sessionManager.getIDStatusUser().equals("1")) {
-            (root.find<RelativeLayout>(R.id.layoutJoinKode)).visibility = View.INVISIBLE
-            (root.find<RelativeLayout>(R.id.petamapbox)).visibility = View.VISIBLE
-        }
-
-        //======================================
-        if (sessionManager.getIDStatusUser().equals("1")) {
-            referencesharing =
-                FirebaseDatabase.getInstance().reference.child("Selecta").child("sharing")
-                    .child(sessionManager.getKunci().toString())
-            referencesharing.addValueEventListener(object : ValueEventListener {
-                override fun onCancelled(p0: DatabaseError) {
-
-                }
-
-                override fun onDataChange(p0: DataSnapshot) {
-                    for (values in markerMap.values) {
-                        markerViewManager?.removeMarker(values)
-                    }
-                    /*       if (setMarker == true){
-                               mapboxMap.clear()
-                               mapboxMap.markers.clear()
-                               //markerViewManager = null
-                           }
-                    */    //   markerViewManager?.removeMarker(marker)
-                    var counter: Int = 0
-                    for (i in p0.children) {
-                        var user: ModelSharing? = i.getValue(ModelSharing::class.java)
-                        var datalongitude = user!!.longitude
-                        var datalatitude = user!!.latidude
-                        lokasi = LatLng(datalatitude, datalongitude)
-                        nama = user!!.name
-                        /*               activity.updateMarkerPosition(lokasi)
-                        */
-
-
-                        customview = LayoutInflater.from(context!!.applicationContext)
-                            .inflate(R.layout.marker, null)
-                        customview.layoutParams =
-                            FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-                        val titleTextView: TextView =
-                            customview.findViewById(R.id.marker_window_title)
-                        titleTextView.text = nama
-                        marker = MarkerView(lokasi, customview)
-                        markerViewManager?.addMarker(marker)
-                        markerMap.put(counter, marker)
-                        counter++
-                        //
-/*
-                        if (setMarker == true) {
-                            mapboxMap.addMarker(
-                                MarkerOptions().position(lokasi)
-                                    .title(nama)
-                            )
-                        }
-*/
-
-                        //break
-
-                    }
-                    hasDraw = true
-
-                }
-            })
-        }
-        //==================================
-
-        butonkeluar = root.find(R.id.btn_keluar)
-        butonkeluar.setOnClickListener {
-            sessionManager.setIDStatusUser("")
-/*
-            if (mapboxMap != null){
-                mapboxMap.clear()
-                mapboxMap.markers.clear()
-            }
-*/
-            statusjoin = false
-            referensehapus =
-                FirebaseDatabase.getInstance().reference.child("Selecta").child("sharing")
-            referensehapus.child(sessionManager.getKunci().toString()).child(userID).removeValue()
-
-            (root.find<RelativeLayout>(R.id.layoutJoinKode)).visibility = View.VISIBLE
-            (root.find<RelativeLayout>(R.id.petamapbox)).visibility = View.INVISIBLE
-
-        }
-        //=============JOIN KODE SEBELUM MEMASUKI PETA======================
-        referencejoin = FirebaseDatabase.getInstance().reference.child("Selecta").child("sharing")
         butonkode = root.find(R.id.sharingbuton)
+        pin = root.find(R.id.pinsharing)
         butonkode.setOnClickListener {
-            mapboxMap.clear()
-            mapboxMap.markers.clear()
-            var pinjoin = pinsharing.value.toString()
+
+            FcmPush.instance.sendMessage("Cr8miBro1QP018K80U6qXUHkUNC2","Howlstagram","ayolah please")
+            referencejoin = FirebaseDatabase.getInstance().reference.child("Selecta").child("sharing")
+            var pinjoin = pin.value.toString()
             referencejoin.addValueEventListener(object : ValueEventListener {
                 override fun onCancelled(p0: DatabaseError) {}
 
                 override fun onDataChange(p0: DataSnapshot) {
-                    for (values in markerMap.values) {
-                        markerViewManager?.removeMarker(values)
-                    }
                     p0.children.forEach {
                         info("informasi : ${it.key}")
                         if (it.key.toString().equals(pinjoin)) {
-                            sessionManager.setKunci(pinsharing.value.toString())
+                            sessionManager.setKunci(pin.value.toString())
                             sessionManager.setIDStatusUser("1")
-                            (root.find<RelativeLayout>(R.id.layoutJoinKode)).visibility =
-                                View.INVISIBLE
-                            (root.find<RelativeLayout>(R.id.petamapbox)).visibility = View.VISIBLE
-                            if (sessionManager.getIDStatusUser().equals("1")) {
-                                referencesharing =
-                                    FirebaseDatabase.getInstance().reference.child("Selecta")
-                                        .child("sharing")
-                                        .child(sessionManager.getKunci().toString())
-                                referencesharing.addValueEventListener(object : ValueEventListener {
-                                    override fun onCancelled(p0: DatabaseError) {
-
-                                    }
-
-                                    override fun onDataChange(p0: DataSnapshot) {
-                                        for (values in markerMap.values) {
-                                            markerViewManager?.removeMarker(values)
-                                        }
-/*
-                                        if (setMarker == true){
-                                            mapboxMap.clear()
-                                            mapboxMap.markers.clear()
-                                            //markerViewManager = null
-                                        }
-*/
-                                        //   markerViewManager?.removeMarker(marker)
-                                        var counter: Int = 0
-                                        for (i in p0.children) {
-                                            var user: ModelSharing? =
-                                                i.getValue(ModelSharing::class.java)
-                                            var datalongitude = user!!.longitude
-                                            var datalatitude = user!!.latidude
-                                            lokasi = LatLng(datalatitude, datalongitude)
-                                            nama = user!!.name
-                                            /*               activity.updateMarkerPosition(lokasi)
-                                            */
-                                            customview =
-                                                LayoutInflater.from(context!!.applicationContext)
-                                                    .inflate(R.layout.marker, null)
-                                            customview.layoutParams =
-                                                FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-                                            val titleTextView: TextView =
-                                                customview.findViewById(R.id.marker_window_title)
-                                            titleTextView.text = nama
-                                            marker = MarkerView(lokasi, customview)
-                                            markerViewManager?.addMarker(marker)
-                                            markerMap.put(counter, marker)
-                                            counter++
-                                            //
-//                                            if (setMarker == true) {
-//                                                mapboxMap.addMarker(
-//                                                    MarkerOptions().position(lokasi)
-//                                                        .title(nama)
-//                                                )
-//                                            }
-
-                                            //break
-
-                                        }
-                                        hasDraw = true
-
-                                    }
-                                })
-                            }
-
+                            val fr = fragmentManager?.beginTransaction()
+                            fr?.replace(R.id.nav_host_fragment,sharerombongandua())
+                            fr?.commit()
                         }
                     }
                 }
             })
 
-            statusjoin = true
         }
-        //==================================================================
+
+        if (sessionManager.getIDStatusUser().equals("1"))
+        {
+            val fr = fragmentManager?.beginTransaction()
+            fr?.replace(R.id.nav_host_fragment,sharerombongandua())
+            fr?.commit()
+        }
+
 
         return root
     }
 
 
-    @SuppressLint("InflateParams", "SetTextI18n")
-    override fun onMapReady(mapboxMap: MapboxMap) {
-        this.mapboxMap = mapboxMap
-        setMarker = true
-
-        geoJsonSource = GeoJsonSource("source-id",
-            Feature.fromGeometry(Point.fromLngLat(currentPosition.longitude,
-                currentPosition.latitude
-            )))
-
-        mapboxMap.setStyle(Style.MAPBOX_STREETS) {
-            enableLocationComponent(it)
-            markerViewManager = MarkerViewManager(mapboxfamily, mapboxMap)
-            it.addImage(("marker_icon"), BitmapFactory.decodeResource(
-                resources, R.drawable.red_marker))
-            it.addSource(geoJsonSource)
-            it.addLayer(SymbolLayer("layer-id", "source-id")
-                .withProperties(
-                    PropertyFactory.iconImage("marker_icon"),
-                    PropertyFactory.iconIgnorePlacement(true),
-                    PropertyFactory.iconAllowOverlap(true)
-                ))
-
-            mapboxMap.addOnMapClickListener(this)
-
-        }
-
-        if (sessionManager.getIDStatusUser().equals("1")) {
-            referencesharing =
-                FirebaseDatabase.getInstance().reference.child("Selecta").child("sharing")
-                    .child(sessionManager.getKunci().toString())
-            referencesharing.addValueEventListener(object : ValueEventListener {
-                override fun onCancelled(p0: DatabaseError) {
-
-                }
-
-                override fun onDataChange(p0: DataSnapshot) {
-
-                    for (values in markerMap.values) {
-                        markerViewManager?.removeMarker(values)
-                    }
-                    //if (hasDraw == false){
-                    mapboxMap.clear()
-                    mapboxMap.markers.clear()
-                    if (setMarker == true) {
-
-                        mapboxMap.clear()
-                        mapboxMap.markers.clear()
-                        val titleTextView: TextView =
-                            customview.findViewById(R.id.marker_window_title)
-                        titleTextView.text = ""
-
-                    }
-                    var counter: Int = 0
-                    for (i in p0.children) {
-                        var user: ModelSharing? = i.getValue(ModelSharing::class.java)
-                        var datalongitude = user!!.longitude
-                        var datalatitude = user!!.latidude
-                        lokasi = LatLng(datalatitude, datalongitude)
-                        nama = user!!.name
-                        /*               activity.updateMarkerPosition(lokasi)
-                        */
-                        customview = LayoutInflater.from(context!!.applicationContext)
-                            .inflate(R.layout.marker, null)
-                        customview.layoutParams =
-                            FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-                        val titleTextView: TextView =
-                            customview.findViewById(R.id.marker_window_title)
-                        titleTextView.text = nama
-                        marker = MarkerView(lokasi, customview)
-                        markerViewManager?.addMarker(marker)
-                        markerMap.put(counter, marker)
-                        counter++
-                        //
-//                            if (setMarker == true) {
-//                                mapboxMap.addMarker(
-//                                    MarkerOptions().position(lokasi)
-//                                        .title(nama)
-//                                )
-//                            }
-
-                        //break
-
-                    }
-                    // }
-
-
-                }
-            })
-        }
-
-    }
-
-
-    @SuppressLint("MissingPermission", "WrongConstant")
-    private fun enableLocationComponent(loadedMapStyle: Style) {
-        if (PermissionsManager.areLocationPermissionsGranted(context?.applicationContext)) {
-            locationComponent = mapboxMap.locationComponent
-            locationComponent.activateLocationComponent(
-                context?.applicationContext!!,
-                loadedMapStyle
-            )
-            locationComponent.isLocationComponentEnabled = true
-            locationComponent.cameraMode = CameraMode.TRACKING
-            locationComponent.renderMode = RenderMode.COMPASS
-            initLocationEngine()
-
-
-        } else {
-            permissionsManager = PermissionsManager(this)
-            permissionsManager.requestLocationPermissions(context?.applicationContext as Activity?)
-        }
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun initLocationEngine() {
-        locationEngine = LocationEngineProvider.getBestLocationEngine(context?.applicationContext!!)
-        val request = LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
-            .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
-            .setMaxWaitTime(DEFAULT_MAX_WAIT_TIME).build()
-
-        locationEngine!!.requestLocationUpdates(request, callback, context!!.mainLooper)
-        locationEngine!!.getLastLocation(callback)
-    }
-
-
-    @Suppress(
-        "NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS", "DEPRECATION", "UNREACHABLE_CODE",
-        "UNREACHABLE_CODE"
-    )
-    internal class MainActivityLocationCallbackBaru internal constructor(activity: ShareRombongan) :
-        LocationEngineCallback<LocationEngineResult> {
-        private val activityWeakReference: WeakReference<ShareRombongan> = WeakReference(activity)
-        private lateinit var sessionManager: SessionManager
-        lateinit var databaseReference: DatabaseReference
-
-        @SuppressLint("SetTextI18n", "InflateParams")
-        override fun onSuccess(result: LocationEngineResult?) {
-            val activity: ShareRombongan? = activityWeakReference.get()
-
-
-            if (activity != null) {
-                val location: Location? = result?.lastLocation
-                if (location == null) {
-                    return
-
-                }
-                if (activity.statusjoin == true) {
-                    databaseReference =
-                        FirebaseDatabase.getInstance().reference.child("Selecta").child("sharing")
-                    databaseReference.child(activity.sessionManager.getKunci().toString())
-                        .child("${activity.userID}/latidude")
-                        .setValue(result.lastLocation!!.latitude)
-                    databaseReference.child(activity.sessionManager.getKunci().toString())
-                        .child("${activity.userID}/longitude")
-                        .setValue(result.lastLocation!!.longitude)
-                    databaseReference.child(activity.sessionManager.getKunci().toString())
-                        .child("${activity.userID}/name")
-                        .setValue(activity.sessionManager.getprofil())
-
-                }
-
-
-            }
-
-        }
-
-        override fun onFailure(exception: Exception) {
-            Log.d("LocationChange", exception.localizedMessage)
-            val activity: ShareRombongan? = activityWeakReference.get()
-            if (activity != null) {
-                activity.toast(exception.localizedMessage)
-
-            }
-
-        }
-    }
-
-
-    private val latLngEvaluator = object : TypeEvaluator<LatLng> {
-        private val latLng = LatLng()
-        override fun evaluate(fraction: Float, startValue: LatLng?, endValue: LatLng?): LatLng {
-            latLng.latitude =
-                (startValue!!.latitude + (endValue!!.getLatitude() - startValue.latitude) * fraction)
-            latLng.longitude =
-                (startValue.longitude + (endValue.getLongitude() - startValue.longitude) * fraction)
-            return latLng
-        }
-
-    }
-
-    private val animatorUpdateListener = object : ValueAnimator.AnimatorUpdateListener {
-        override fun onAnimationUpdate(valueAnimator: ValueAnimator?) {
-            val animatedPosition = valueAnimator!!.animatedValue as LatLng
-            geoJsonSource.setGeoJson(
-                Point.fromLngLat(
-                    animatedPosition.longitude,
-                    animatedPosition.latitude
-                )
-            )
-
-        }
-    }
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        val preferences = context.getSharedPreferences("pref", 0)
-    }
-
-    override fun onStart() {
-        super.onStart()
-        mapboxfamily.onStart()
-    }
-
-
-    override fun onResume() {
-        super.onResume()
-        mapboxfamily.onResume()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        mapboxfamily.onPause()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        mapboxfamily.onStop()
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        mapboxfamily.onSaveInstanceState(outState)
-    }
-
-    override fun onLowMemory() {
-        super.onLowMemory()
-        mapboxfamily.onLowMemory()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
 
 
 
-        if (locationEngine != null) {
-            locationEngine!!.removeLocationUpdates(callback)
-        }
 
-
-        mapboxfamily.onDestroy()
-
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    }
-
-    override fun onExplanationNeeded(permissionsToExplain: List<String>) {
-        toast(R.string.user_location_permission_explanation)
-    }
-
-    override fun onPermissionResult(granted: Boolean) {
-        if (granted) {
-            if (mapboxMap.style != null) {
-                enableLocationComponent(mapboxMap.style!!)
-            }
-        } else {
-            toast(R.string.user_location_permission_not_granted)
-            activity?.finish()
-        }
-
-    }
-
-
-    @Suppress("SENSELESS_COMPARISON")
-    override fun onMapClick(point: LatLng): Boolean {
-   /*     if (animator != null && animator.isStarted)
-        {
-            currentPosition = animator.animatedValue as LatLng
-            animator.cancel()
-        }
-
-        animator = ObjectAnimator
-            .ofObject(latLngEvaluator, currentPosition, point)
-            .setDuration(2000)
-        animator.addUpdateListener(animatorUpdateListener)
-        animator.start()
-
-        currentPosition = point
-*/
-        return true
-
-    }
 
 
 }
