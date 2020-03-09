@@ -24,6 +24,21 @@
         android:layout_centerVertical="true"
         android:text="keluar"
         android:id="@+id/keluarshare"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="100dp"
         />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:text="Lihat User"
+        android:id="@+id/viewuser"
+        android:layout_alignParentBottom="true"
+        android:layout_toRightOf="@+id/keluarshare"
+        android:layout_marginLeft="20dp"
+        />
+
+
 
 </RelativeLayout>

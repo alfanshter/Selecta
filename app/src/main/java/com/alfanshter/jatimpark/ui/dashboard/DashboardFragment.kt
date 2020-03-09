@@ -53,7 +53,7 @@ class DashboardFragment : Fragment(), BannerListener {
         savedInstanceState: Bundle?
     ): View? {
         val root = inflater.inflate(R.layout.fragment_dashboard, container, false)
-       
+
 
         banner = root.find(R.id.rvMain)
         databaseReference = FirebaseDatabase.getInstance().reference.child("Selecta").child("Home")

@@ -25,6 +25,7 @@ import com.alfanshter.jatimpark.Model.ModelBaru
 import com.alfanshter.jatimpark.Model.ModelSharing
 import com.alfanshter.jatimpark.R
 import com.alfanshter.jatimpark.Session.SessionManager
+import com.alfanshter.jatimpark.ui.shareRombongan.listuser.UsersFragment
 import com.firebase.geofire.GeoFire
 import com.firebase.geofire.GeoQuery
 import com.google.firebase.auth.FirebaseAuth
@@ -96,6 +97,7 @@ class sharerombongandua : Fragment(), OnMapReadyCallback, MapboxMap.OnMapClickLi
     private lateinit var geoJsonSource: GeoJsonSource
     var lokasi = LatLng(00.00, 00.00)
     private var currentPosition = LatLng(-7.81958192107, 112.52652012)
+
     var nama = ""
     @SuppressLint("UseSparseArrays")
     var markerMap: HashMap<Int, MarkerView> = HashMap<Int, MarkerView>()
@@ -109,6 +111,7 @@ class sharerombongandua : Fragment(), OnMapReadyCallback, MapboxMap.OnMapClickLi
         Mapbox.getInstance(context!!.applicationContext, getString(R.string.access_token))
         val root = inflater.inflate(R.layout.fragment_sharerombongandua, container, false)
         val mapView = root.findViewById(R.id.mapboxfamily) as MapView
+        val butonview : Button = root.find(R.id.viewuser)
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
         hasDraw = false
@@ -117,6 +120,13 @@ class sharerombongandua : Fragment(), OnMapReadyCallback, MapboxMap.OnMapClickLi
         userID = user.uid
         sessionManager = SessionManager(context)
         butonkode = root.find(R.id.keluarshare)
+
+        butonview.setOnClickListener {
+            val fr = fragmentManager?.beginTransaction()
+            fr?.replace(R.id.nav_host_fragment, UsersFragment())
+            fr?.commit()
+
+        }
 
 
         // Inflate the layout for this fragment

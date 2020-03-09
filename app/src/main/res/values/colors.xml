@@ -22,6 +22,8 @@
 
     <color name="txt_color">#1f2833</color>
     <color name="purple">#7c4dff</color>
+    <color name="outline_gray">#cccccc</color>
+
 
 
 </resources>
